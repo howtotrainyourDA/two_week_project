@@ -56,33 +56,35 @@ output: df
 function for total average step time and start-to-confirm
 """
 
+
+#this stores the avg time in a seperate column to do the hypothesis testing. 
+
+
 def calculate_avg_time(df):
+    # Step 1: Convert 'date_time' to datetime
     df['date_time'] = pd.to_datetime(df['date_time'])
 
+    # Step 2: Sort values by 'visit_id' and 'date_time'
     df.sort_values(by=['visit_id', 'date_time'], inplace=True)
 
-    df['time_diff'] = df.groupby('visit_id')['date_time'].diff()
+    # Step 3: Calculate the time differences (in seconds) between each row's 'date_time'
+    df['time_diff'] = df.groupby('visit_id')['date_time'].diff().dt.total_seconds()
 
-    # Filter out rows where time_diff is NaT (first row of each visit_id)
-    df = df.dropna(subset=['time_diff'])
+    # Step 4: Create new columns for each step-to-step time difference
+    # From 'start' to 'step_1', 'step_1' to 'step_2', etc.
+    df['start_to_step_1_time'] = df.groupby('visit_id')['time_diff'].shift(-1)
+    df['step_1_to_step_2_time'] = df.groupby('visit_id')['time_diff'].shift(-2)
+    df['step_2_to_step_3_time'] = df.groupby('visit_id')['time_diff'].shift(-3)
+    df['step_3_to_confirm_time'] = df.groupby('visit_id')['time_diff'].shift(-4)
 
-    average_time_per_step = df.groupby('process_step')['time_diff'].mean()
-
-    #convert date_time to seconds
-    average_time_per_step = average_time_per_step.dt.total_seconds()
-
+    # Step 5: Calculate the total time from 'start' to 'confirm' for each client
+    # We will use the 'time_diff' for the difference between 'start' and 'confirm'
     start_confirm_df = df[df['process_step'].isin(['start', 'confirm'])]
-
-    start_confirm_df.loc[:, 'time_diff'] = start_confirm_df.groupby('visit_id')['date_time'].diff()
-
-    #keep only "confirm" rows
+    start_confirm_df['time_diff'] = start_confirm_df.groupby('visit_id')['date_time'].diff().dt.total_seconds()
+    
+    # Keep only 'confirm' rows (these represent the end of the process)
     start_to_confirm_time = start_confirm_df[start_confirm_df['process_step'] == 'confirm']
+    df['total_start_to_confirm_time'] = start_to_confirm_time.groupby('visit_id')['time_diff'].transform('sum')
 
-    avg_time_start_to_confirm = start_to_confirm_time['time_diff'].mean().total_seconds()  / 60
-
-
-    print("Average time per process step (in seconds):")
-    print(average_time_per_step.round(2))
-
-    print(f"\nAverage time from 'start' to 'confirm': {avg_time_start_to_confirm} min / {avg_time_start_to_confirm * 60} seconds")
-
+    # Step 6: Return the dataframe with time differences per step for each client
+    return df
