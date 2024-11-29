@@ -2,17 +2,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-
-"""
-input: df
-output: df
-
-function to extract only the latest session per client based on visit_id
-
-"""
+##------------------------------##
 
 def valid_session(df: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    input: df
+    output: df
+
+    function to extract only the latest session per client based on visit_id
+    """
+
+
     df['date_time'] = pd.to_datetime(df['date_time'])
     
     most_recent_sessions = df.loc[df.groupby('client_id')['date_time'].idxmax()]
@@ -23,6 +24,7 @@ def valid_session(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_recent
 
+##------------------------------##
 
 
 
@@ -33,34 +35,67 @@ step_mapping = {
         'step_3': 3,
         'confirm': 4
     }
-"""
-input: df
-output: df
 
-function to map "process_step" for easier sorting of process steps
-"""
 
 def step_map(df):
+
+    """
+    input: df
+    output: df
+
+    function to map "process_step" for easier sorting of process steps
+
+    """
+
     df["process_step_num"] = df["process_step"].map(step_mapping)
     df = df.sort_values(by=["client_id", "process_step_num"], ascending = True)
 
     return df
 
 
+##------------------------------##
 
 
-"""
-input: df
-output: df
 
-function for total average step time and start-to-confirm
-"""
+
+def sample_size(df: pd.DataFrame, sample_size: int) -> pd.DataFrame:
+    """
+    Function to randomly sample a given number of rows from a DataFrame.
+    
+    Parameters:
+    df (pd.DataFrame): The input DataFrame from which to sample.
+    sample_size (int): The number of rows to sample.
+    
+    Returns:
+    pd.DataFrame: A DataFrame containing the random sample.
+    """
+    # Check if sample size is valid (not greater than the total number of rows in the DataFrame)
+    if sample_size > len(df):
+        raise ValueError(f"Sample size cannot be greater than the number of rows in the DataFrame ({len(df)} rows).")
+    
+    # Randomly sample without replacement
+    sample_df = df.sample(n=sample_size, random_state=42)  # random_state for reproducibility
+    
+    return sample_df
+
+
+##------------------------------##
+
+
 
 
 #this stores the avg time in a seperate column to do the hypothesis testing. 
 
 
 def calculate_avg_time(df):
+
+    """
+    input: df
+    output: df
+
+    function for total average step time and start-to-confirm
+    """
+
     # Step 1: Convert 'date_time' to datetime
     df['date_time'] = pd.to_datetime(df['date_time'])
 
@@ -88,3 +123,7 @@ def calculate_avg_time(df):
 
     # Step 6: Return the dataframe with time differences per step for each client
     return df
+
+
+
+##------------------------------##

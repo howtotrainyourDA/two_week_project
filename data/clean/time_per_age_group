@@ -1,0 +1,13 @@
+age_group,variation,total_start_to_confirm_time
+<18,Control,201.95
+<18,Test,245.84
+18-25,Control,251.37
+18-25,Test,421.12
+26-35,Control,276.06
+26-35,Test,288.68
+36-50,Control,331.85
+36-50,Test,339.57
+51-65,Control,392.28
+51-65,Test,403.45
+65+,Control,447.02
+65+,Test,420.3
